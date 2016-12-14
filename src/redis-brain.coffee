@@ -30,18 +30,9 @@ module.exports = (robot) ->
              else if process.env.REDIS_URL?
                redisUrlEnv = "REDIS_URL"
                process.env.REDIS_URL
-             else if process.env.CF_REDIS_SERIVCE?
+             else if process.env.CF_REDIS_SERVICE?
                redisUrlEnv = "CF_REDIS_SERIVCE"
-               services = JSON.parse(process.env.VCAP_SERVICES)
-               redis_service = services[process.env.CF_REDIS_SERVICE]
-               for instance in redis_service
-                 if instance['name'] == process.env.CF_REDIS_INSTANCE_NAME
-                   hubot_instance = instance
-               redis_creds = hubot_instance['credentials']
-               redis_url = 'redis://:'+redis_creds['password']+
-                 '@'+redis_creds['hostname']+
-                 ':'+redis_creds['port']+'/'+process.env.CF_REDIS_INSTANCE_NAME
-               redis_url
+               buildCFURL()
              else
                'redis://localhost:6379'
 
@@ -93,3 +84,18 @@ module.exports = (robot) ->
 
   robot.brain.on 'close', ->
     client.quit()
+
+buildCFURL = ->
+  services = JSON.parse(process.env.VCAP_SERVICES)
+  redis_service = services[process.env.CF_REDIS_SERVICE]
+  for instance in redis_service
+    if instance['name'] == process.env.CF_REDIS_INSTANCE_NAME
+      hubot_instance = instance
+  redis_creds = hubot_instance['credentials']
+  host = redis_creds['hostname']
+  if host == undefined
+    host = redis_creds['host']
+  redis_url = 'redis://:'+redis_creds['password']+
+    '@'+host+
+    ':'+redis_creds['port']+'/'+process.env.CF_REDIS_INSTANCE_NAME
+  return redis_url
