@@ -4,6 +4,11 @@
 # Configuration:
 #   REDISTOGO_URL or REDISCLOUD_URL or BOXEN_REDIS_URL or REDIS_URL.
 #   URL format: redis://<host>:<port>[/<brain_prefix>]
+#
+#   Running in CloudFoundry
+#   CF_REDIS_SERVICE = Your CloudFoundry's Redis Service name (ie. p-redis or rediscloud)
+#   CF_REDIS_INSTANCE_NAME = The name you gave your serive instance. This will be used as the brain_prefix
+#
 #   If not provided, '<brain_prefix>' will default to 'hubot'.
 #
 # Commands:
@@ -25,6 +30,16 @@ module.exports = (robot) ->
              else if process.env.REDIS_URL?
                redisUrlEnv = "REDIS_URL"
                process.env.REDIS_URL
+             else if process.env.CF_REDIS_SERIVCE?
+               redisUrlEnv = "CF_REDIS_SERIVCE"
+               services = JSON.parse(process.env.VCAP_SERVICES)
+               redis_service = services[CF_REDIS_SERVICE]
+               hubot_instance = for instance in redis_service when instance['name'] equals CF_REDIS_INSTANCE_NAME
+               redis_creds = hubot_instance['credentials']
+               redis_url = 'redis://:'+redis_creds['password']+
+                 '@'+redis_creds['hostname']+
+                 ':'+redis_creds['port']+'/'CF_REDIS_INSTANCE_NAME
+               redis_url
              else
                'redis://localhost:6379'
 
