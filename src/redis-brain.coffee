@@ -31,7 +31,7 @@ module.exports = (robot) ->
                redisUrlEnv = "REDIS_URL"
                process.env.REDIS_URL
              else if process.env.CF_REDIS_SERVICE?
-               redisUrlEnv = "CF_REDIS_SERIVCE"
+               redisUrlEnv = "CF_REDIS_SERVICE"
                buildCFURL()
              else
                'redis://localhost:6379'
